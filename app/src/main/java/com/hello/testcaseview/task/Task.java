@@ -1,6 +1,5 @@
-package com.hello.testcaseview;
+package com.hello.testcaseview.task;
 
-// Task.java
 public class Task {
     public static final int STATUS_PENDING = 0;
     public static final int STATUS_RUNNING = 1;

@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.hello.testcaseview">
 
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,7 +23,7 @@
         </activity>
 
         <activity
-            android:name=".ResultActivity"
+            android:name=".task.ResultActivity"
             android:exported="false" />
     </application>
 

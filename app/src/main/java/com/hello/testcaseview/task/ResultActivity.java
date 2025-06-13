@@ -1,7 +1,6 @@
-package com.hello.testcaseview;
+package com.hello.testcaseview.task;
 
 import android.os.Bundle;
-//import android.support.v7.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +11,8 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.hello.testcaseview.R;
 
 import java.util.List;
 

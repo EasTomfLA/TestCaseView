@@ -10,6 +10,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.hello.testcaseview.task.ResultActivity;
+import com.hello.testcaseview.task.Task;
+import com.hello.testcaseview.task.TaskAdapter;
+import com.hello.testcaseview.task.TaskManager;
+import com.hello.testcaseview.task.TestExecutor;
+
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements TestExecutor.TestExecutionListener {

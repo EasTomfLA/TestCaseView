@@ -1,4 +1,4 @@
-package com.hello.testcaseview;
+package com.hello.testcaseview.task;
 
 import android.content.Context;
 
@@ -25,11 +25,7 @@ public class TaskManager {
         tasks.add(createTask("camera", "相机功能测试"));
         tasks.add(createTask("storage", "存储空间测试"));
         tasks.add(createTask("battery", "电池性能测试"));
-        tasks.add(createTask("network1", "网络连接测试1"));
-        tasks.add(createTask("bluetooth1", "蓝牙功能测试1"));
-        tasks.add(createTask("camera1", "相机功能测试1"));
-        tasks.add(createTask("storage1", "存储空间测试1"));
-        tasks.add(createTask("battery1", "电池性能测试1"));
+        tasks.add(createTask("default", "默认测试任务"));
 
         return tasks;
     }
