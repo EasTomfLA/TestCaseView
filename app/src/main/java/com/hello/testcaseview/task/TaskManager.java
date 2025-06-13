@@ -11,6 +11,7 @@ import java.util.List;
 
 public class TaskManager {
     private Context context;
+    private static final String RESULT_FILE_SUFFIX = "_result.json";
 
     public TaskManager(Context context) {
         this.context = context;
@@ -42,7 +43,7 @@ public class TaskManager {
     public void saveTaskResult(Task task) {
         try {
             FileOutputStream fos = context.openFileOutput(
-                    task.getId() + "_result.json", Context.MODE_PRIVATE);
+                    task.getId() + RESULT_FILE_SUFFIX, Context.MODE_PRIVATE);
 
             // 创建JSON格式数据
             JSONObject json = new JSONObject();
@@ -66,14 +67,14 @@ public class TaskManager {
         // 读取所有任务结果文件
         String[] files = context.fileList();
         for (String file : files) {
-            if (file.endsWith("_result.json")) {
+            if (file.endsWith(RESULT_FILE_SUFFIX)) {
                 Task task = loadTaskResult(file);
                 if (task != null) {
                     results.add(task);
                 }
             }
         }
-
+        
         return results;
     }
 
@@ -99,5 +100,46 @@ public class TaskManager {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * 清除单个任务结果文件
+     * @param taskId 任务ID
+     * @return 是否成功清除
+     */
+    public boolean clearTaskResult(String taskId) {
+        try {
+            String filename = taskId + RESULT_FILE_SUFFIX;
+            return context.deleteFile(filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * 清除所有任务结果文件
+     */
+    public void clearAllTaskResults() {
+        String[] files = context.fileList();
+        for (String file : files) {
+            if (file.endsWith(RESULT_FILE_SUFFIX)) {
+                context.deleteFile(file);
+            }
+        }
+    }
+    
+    /**
+     * 检查是否存在任务结果文件
+     * @return 如果存在任务结果则返回true，否则返回false
+     */
+    public boolean hasTaskResults() {
+        String[] files = context.fileList();
+        for (String file : files) {
+            if (file.endsWith(RESULT_FILE_SUFFIX)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
