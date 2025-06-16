@@ -1,4 +1,4 @@
-package com.hello.testcaseview;
+package com.hello.testcaseview.task;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +7,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.hello.testcaseview.R;
 
 import java.util.List;
 
