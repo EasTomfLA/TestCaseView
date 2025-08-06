@@ -29,10 +29,16 @@ public class MainActivity extends AppCompatActivity implements TestExecutor.Test
     private List<Task> taskList;
     private boolean isTestingInProgress = false;
 
+    static {
+        System.loadLibrary("testcaseview");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        stringFromJNI();
 
         // 初始化控件
         taskListView = findViewById(R.id.taskListView);
@@ -144,4 +150,7 @@ public class MainActivity extends AppCompatActivity implements TestExecutor.Test
             }
         });
     }
+    native public static String stringFromJNI();
+
+//    native public static void showme();
 }
