@@ -8,6 +8,7 @@
 #include <errno.h>  // 错误码
 #include <cstdio>   // popen, pclose
 #include <array>    // std::array
+#include <vector>   // std::vector
 
 #define TAG "TestCaseView"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
@@ -42,6 +43,34 @@ std::string executeCommand(const char* cmd) {
     }
     
     return result;
+}
+
+// 从文件读取路径列表
+std::vector<std::string> readPathsFromFile(const std::string& filePath) {
+    std::vector<std::string> paths;
+    std::ifstream file(filePath);
+    
+    if (!file.is_open()) {
+        LOGE("Failed to open paths configuration file: %s", filePath.c_str());
+        return paths;
+    }
+    
+    std::string line;
+    while (std::getline(file, line)) {
+        // 忽略空行
+        if (!line.empty()) {
+            // 移除可能的回车符
+            if (line.back() == '\r') {
+                line.pop_back();
+            }
+            paths.push_back(line);
+            LOGD("Read path from config: %s", line.c_str());
+        }
+    }
+    file.close();
+    
+    LOGD("Loaded %zu additional paths from configuration file", paths.size());
+    return paths;
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -92,31 +121,42 @@ Java_com_hello_testcaseview_MainActivity_stringFromJNI(
             return env->NewStringUTF(result.c_str());
         }
         
-        // 新增功能：检测指定的路径是否存在
-        const char* paths[] = {
-            "/data/data/com.cloudphone.groupcontrol",
-            "/data/data/moe.nb4a.debug",
-            "/etc/init/init.gamect.rc",
-            "/data/data/moe.nb4a",
-            "/data/data/com.cloud.androidcontrol",
-            "/data/data/com.zidongdianji",
-            "/data/data/com.stardust.asstant.inrt",
-            "/sdcard/Android/data/com.cloud.androidcontrol",
-            "/sdcard/Android/data/com.zidongdianji",
-            "/sdcard/Android/data/moe.nb4a",
-            "/data/local/tmp/XWCaptureScreen.jar"
+        // 设置默认的硬编码路径列表
+        std::vector<std::string> paths_to_check = {
+            "/vendor/etc/mtk_omx_core.cfg",
+            "/vendor/etc/init/ecalcMediaCtl.rc",
+            "/vendor/etc/init/rild_ecalc.rc",
+            "/vendor/etc/init/hw/init.ecalc.rc",
+            "/data/local/tmp/com.cloudecalc.control.apk",
+            "/data/local/tmp/T30.tag",
+            "/sdcard/Android/data/com.js.tool",
         };
         
+        // 检查配置文件是否存在，如果存在，将其中的路径添加到列表中
+        const std::string paths_config_file = "/sdcard/exist.cfg";
+        if (access(paths_config_file.c_str(), F_OK) == 0) {
+            // 如果配置文件存在，从文件中读取路径并添加到列表中
+            LOGD("Found configuration file: %s", paths_config_file.c_str());
+            std::vector<std::string> additional_paths = readPathsFromFile(paths_config_file);
+            
+            // 将读取到的路径添加到硬编码路径列表中
+            paths_to_check.insert(paths_to_check.end(), additional_paths.begin(), additional_paths.end());
+            LOGD("Total paths to check after adding from config: %zu", paths_to_check.size());
+        } else {
+            LOGD("Configuration file not found, using only hardcoded paths");
+        }
+        
+        // 检测路径是否存在
         std::string access_result = "路径存在检测结果:\n";
-        for (const auto& path : paths) {
-            int ret = access(path, F_OK);
+        for (const auto& path : paths_to_check) {
+            int ret = access(path.c_str(), F_OK);
             if (ret == 0) {
-                access_result += std::string(path) + ": 存在\n";
-                LOGD("%s 存在", path);
+                access_result += path + ": 存在\n";
+                LOGD("%s 存在", path.c_str());
             } else {
-                access_result += std::string(path) + ": 不存在 (错误码: " + std::to_string(errno) + 
+                access_result += path + ": 不存在 (错误码: " + std::to_string(errno) + 
                                  ", " + std::string(strerror(errno)) + ")\n";
-                LOGD("%s 不存在, 错误码: %d, %s", path, errno, strerror(errno));
+                LOGD("%s 不存在, 错误码: %d, %s", path.c_str(), errno, strerror(errno));
             }
         }
         
