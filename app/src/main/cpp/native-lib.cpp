@@ -45,6 +45,16 @@ std::string executeCommand(const char* cmd) {
     return result;
 }
 
+// 去除字符串首尾空格的辅助函数
+std::string trim(const std::string& str) {
+    size_t start = str.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos) {
+        return "";
+    }
+    size_t end = str.find_last_not_of(" \t\r\n");
+    return str.substr(start, end - start + 1);
+}
+
 // 从文件读取路径列表
 std::vector<std::string> readPathsFromFile(const std::string& filePath) {
     std::vector<std::string> paths;
@@ -57,12 +67,11 @@ std::vector<std::string> readPathsFromFile(const std::string& filePath) {
     
     std::string line;
     while (std::getline(file, line)) {
+        // 去除首尾空格（包括空格、制表符、回车符和换行符）
+        line = trim(line);
+        LOGD("Read path from config line: %s", line.c_str());
         // 忽略空行
         if (!line.empty()) {
-            // 移除可能的回车符
-            if (line.back() == '\r') {
-                line.pop_back();
-            }
             paths.push_back(line);
             LOGD("Read path from config: %s", line.c_str());
         }
