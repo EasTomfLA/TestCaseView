@@ -9,6 +9,7 @@
 #include <cstdio>   // popen, pclose
 #include <array>    // std::array
 #include <vector>   // std::vector
+#include <sys/system_properties.h> // __system_property_get
 
 #define TAG "TestCaseView"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
@@ -82,6 +83,42 @@ std::vector<std::string> readPathsFromFile(const std::string& filePath) {
     return paths;
 }
 
+// 从系统属性读取路径列表（用;分隔）
+std::vector<std::string> readPathsFromProperty(const char* propName) {
+    std::vector<std::string> paths;
+    char propValue[PROP_VALUE_MAX] = {0};
+    int len = __system_property_get(propName, propValue);
+    
+    if (len <= 0) {
+        LOGD("Property %s not found or empty", propName);
+        return paths;
+    }
+    
+    std::string value(propValue);
+    LOGD("Property %s = %s", propName, value.c_str());
+    
+    size_t start = 0;
+    size_t end = 0;
+    while ((end = value.find(';', start)) != std::string::npos) {
+        std::string path = trim(value.substr(start, end - start));
+        if (!path.empty()) {
+            paths.push_back(path);
+            LOGD("Read path from property: %s", path.c_str());
+        }
+        start = end + 1;
+    }
+    
+    // 处理最后一个分段
+    std::string last = trim(value.substr(start));
+    if (!last.empty()) {
+        paths.push_back(last);
+        LOGD("Read path from property: %s", last.c_str());
+    }
+    
+    LOGD("Loaded %zu paths from property %s", paths.size(), propName);
+    return paths;
+}
+
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_hello_testcaseview_MainActivity_stringFromJNI(
         JNIEnv* env,
@@ -127,18 +164,11 @@ Java_com_hello_testcaseview_MainActivity_stringFromJNI(
             result += ")";
         } else {
             result += " (Failed to write to SD card. Check permissions)";
-            return env->NewStringUTF(result.c_str());
+//            return env->NewStringUTF(result.c_str());
         }
         
         // 设置默认的硬编码路径列表
         std::vector<std::string> paths_to_check = {
-            "/vendor/etc/mtk_omx_core.cfg",
-            "/vendor/etc/init/ecalcMediaCtl.rc",
-            "/vendor/etc/init/rild_ecalc.rc",
-            "/vendor/etc/init/hw/init.ecalc.rc",
-            "/data/local/tmp/com.cloudecalc.control.apk",
-            "/data/local/tmp/T30.tag",
-            "/sdcard/Android/data/com.js.tool",
         };
         
         // 检查配置文件是否存在，如果存在，将其中的路径添加到列表中
@@ -153,6 +183,13 @@ Java_com_hello_testcaseview_MainActivity_stringFromJNI(
             LOGD("Total paths to check after adding from config: %zu", paths_to_check.size());
         } else {
             LOGD("Configuration file not found, using only hardcoded paths");
+        }
+        
+        // 读取 debug.testpaths 系统属性，将其中的路径添加到列表中
+        std::vector<std::string> prop_paths = readPathsFromProperty("debug.testpaths");
+        if (!prop_paths.empty()) {
+            paths_to_check.insert(paths_to_check.end(), prop_paths.begin(), prop_paths.end());
+            LOGD("Total paths to check after adding from property: %zu", paths_to_check.size());
         }
         
         // 检测路径是否存在
